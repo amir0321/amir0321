@@ -1,22 +1,31 @@
-# AirBean API – Tekniska val, min roll & lärdomar
+# AirBean API
 
-**Repo:** [github.com/amir0321/airbean-api](https://github.com/amir0321/airbean-api)  
-**Stack:** Node.js, Express, SQLite
+AirBean API är ett REST-API för en fiktiv kaffekedja som levererar med drönare. Det hanterar meny, beställningar, kampanjrabatter och beräknad leveranstid. Vi byggde API:et i ett team på fyra personer.
 
----
+**Teknik** · Node.js, Express och SQLite
 
-## Bakgrund & min roll i gruppen
+[Visa källkoden för AirBean API](https://github.com/amir0321/airbean-api)
 
-AirBean API var ett grupparbete (4 personer) där vi byggde ett REST-API för en kaffekedja som levererar kaffe med drönare. Vi arbetade agilt med Trello, dagliga standups och en strikt Git-regel: ingen pushar direkt till `main`, och minst två gruppmedlemmar måste granska varje Pull Request.
+## Min roll
 
-- **Min roll i starten:** Innan vi skrev en enda rad kod ritade jag upp databasdiagrammet så att alla i gruppen var överens om tabellerna och relationerna.
-- **Under projektet:** Jag var med och byggde upp arkitekturen (`routes`, `controllers`, `services`, `middleware`), valideringen och order-/kampanjflödet.
+Jag ritade upp databasens tabeller och relationer så att gruppen hade en gemensam modell att arbeta utifrån. Jag bidrog också till att strukturera Express-koden och till arbetet med validering, orderflöde och kampanjlogik.
 
-## Viktiga beslut vi tog
+## Tekniska val
 
-### 1. Automatisk rabattberäkning på serversidan
-I kraven fanns flera kombinationskampanjer (t.ex. *Bryggkaffe + Ostmacka ger 15 % rabatt*, *3 ostmackor ger en på köpet*).
-- **Varför vi lade allt i backend:** Vi bestämde att klienten bara ska skicka in en lista med `{ productId, quantity }` till `POST /api/orders`. Backend slår själv upp priserna i databasen, räknar ut vilka kampanjer som matchar och returnerar `baseTotal`, `discountTotal`, `totalPrice` och `appliedDiscounts`. På så sätt kan en användare aldrig manipulera totalpriset i webbläsaren.
+### Priser och rabatter beräknas på servern
 
-### 2. Både gäst- och medlemsbeställningar i samma flöde
-- **Varför:** Vi ville att det skulle vara lika enkelt att beställa som gäst som inloggad. Om headern `x-user-id` skickas med kopplas ordern till användarens historik (`GET /api/orders/user/:userId`), annars registreras den som en gästorder men får exakt samma ETA- och statusspårning (`brygger` → `Drönare på väg` → `Levererad`).
+När klienten anropar `POST /api/orders` skickar den produkt-ID och antal för varje rad. API:et validerar orderraderna, hämtar priserna från SQLite och tillämpar aktuella kampanjregler, till exempel rabatt när en kund beställer både bryggkaffe och en ostmacka. Servern returnerar grundbelopp, rabatt och slutpris tillsammans med de kampanjer som användes.
+
+### Ett orderflöde för gäster och användare
+
+Både gästbeställningar och beställningar kopplade till ett användar-ID går genom samma prisberäkning och får en beräknad leveranstid. Klienten kan skicka `x-user-id` för att koppla en order till ett användar-ID. Verifierad identitet skulle kräva ett separat autentiseringssteg.
+
+### Validering och affärsregler i separata lager
+
+Vi delade upp arbetet mellan Express-rutter, validering, controllers och tjänster. Det gav kampanjreglerna en egen plats i koden och gjorde det enklare för gruppen att arbeta parallellt med olika delar av API:et.
+
+## Vad jag lärde mig
+
+Jag fick omsätta kampanjerna i menyn till regler som API:et kan tillämpa konsekvent när det räknar ut en beställning. Databasdiagrammet blev en gemensam referens när vi delade upp arbetet med menyn, beställningarna och kampanjerna.
+
+[Tillbaka till profilöversikten](../README.md)

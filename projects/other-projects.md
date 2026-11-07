@@ -1,42 +1,49 @@
-# Övriga projekt – Tankar, val & lärdomar
+# Övriga projekt
 
-Här är en kort sammanfattning av vad jag ville lära mig och vilka val jag gjorde i mina övriga projekt på GitHub.
+Här finns några mindre projekt där jag provade nya sätt att bygga gränssnitt och jobba med data.
 
----
+[Tillbaka till profilöversikten](../README.md)
 
-## 1. [CodeForge](https://github.com/amir0321/codeforge) *(React 19, Vite, Tailwind CSS, Framer Motion, EmailJS)*
-- **Vad det är:** En webbplats för en digital byrå med fokus på cybersäkerhet, prestanda och flerspråkighet.
-- **Mina egna val:**
-  - **Språkbyte (SV/EN) med egen Context:** Istället för att ta in `react-i18next` för en mindre sajt skapade jag `LanguageContext` och en ren objektstruktur i `translations.js`. Det gav mig full kontroll och noll extra paketberoenden.
-  - **Honeypot & rate-limiting i kontaktformuläret:** Eftersom sidan är statiskt hostad på Firebase och använder EmailJS ville jag skydda formuläret mot spambotar utan att tvinga användaren att klicka i trafikljus (reCAPTCHA). Ett osynligt honeypot-fält + tidsgräns löste det snyggt.
+## CodeForge
 
----
+En tvåspråkig webbplats för digitala tjänster inom webbutveckling och cybersäkerhet. Jag samlade svenska och engelska texter i en gemensam översättningsfil och lät React Context hantera språkbytet i hela gränssnittet.
 
-## 2. [NextWatch](https://github.com/amir0321/Nextwatch) *(React, Vite, Tailwind CSS, React Router, Axios, TMDB API)*
-- **Vad det är:** En filmapp som hämtar populära och kommande filmer från The Movie Database (TMDB).
-- **Mina egna val:**
-  - **Separera API-anrop från UI (`services/`):** Jag bröt ut alla Axios-anrop till en egen `services/`-mapp så att sidkomponenterna slipper innehålla URL:er och fetch-logik.
-  - **Enkel state-hantering (`useState` / `useEffect`) framför Redux:** Jag funderade på om Context eller Redux behövdes, men kom fram till att vanliga props och lokal state gjorde koden mycket enklare att följa för den här storleken på app.
-  - **Egen statuskomponent (`MoviesStatus`):** Istället för att upprepa laddningssnurror och felmeddelanden på varje sida samlade jag det i en återanvändbar komponent.
+Kontaktformuläret använder EmailJS. Jag lade till ett dolt fält för att fånga enkla botinlämningar och en minuts väntetid mellan lyckade inskick i samma webbläsare. Båda kontrollerna körs i klienten, där väntetiden hanteras med `localStorage`.
 
----
+[Se källkoden för CodeForge](https://github.com/amir0321/codeforge)
 
-## 3. [TASKFLOW](https://github.com/amir0321/TASKFLOW) *(React 19, Express 5, MongoDB/Mongoose, JWT, Tailwind v4)*
-- **Vad det är:** En fullstack todo-/projekthanterare med inloggning, prioriteringar och statusflöden (*To Do → In Progress → Done*).
-- **Mina egna val & lärdomar:**
-  - **Varför MongoDB här?** I mina andra projekt har jag använt SQL (PostgreSQL och SQLite). Med Taskflow ville jag lära mig hur man modellerar dokument och relationer i en NoSQL-databas med Mongoose, samt hur man bygger JWT-autentisering och lösenordshashning (`bcrypt`) i Express 5.
+## NextWatch
 
----
+En filmapp i React som visar populära och kommande filmer från The Movie Database. Jag lade Axios-anropen i ett eget servicelager och återanvände samma detaljvy via `/movie/:id`. Komponenten `MoviesStatus` samlar återkopplingen för laddning, fel och tomma sökresultat, så att vyerna kan fokusera på att presentera filmerna.
 
-## 4. [Solsystem – Solaris](https://github.com/amir0321/Solsystem) *(Vanilla JavaScript, HTML5, CSS3)*
-- **Vad det är:** En interaktiv visualisering av solsystemet byggd helt utan ramverk.
-- **Mina lärdomar:**
-  - Att hantera asynkrona beroenden i ren JavaScript (`async/await`): först hämta en API-nyckel från en endpoint och sedan använda nyckeln för att hämta planeterna i `service.js`.
-  - Hur mycket React faktiskt hjälper en i vardagen – när man bygger allt med `document.createElement` och event-lyssnare i `script.js` får man en mycket djupare förståelse för hur DOM:en fungerar under huven.
+[Se källkoden för NextWatch](https://github.com/amir0321/Nextwatch)
 
----
+## Taskflow
 
-## 5. [Pärmar & Poesi](https://github.com/amir0321/Parmar-Poesi) *(HTML5, SASS, Tailwind CSS – Grupparbete)*
-- **Vad det är:** Landningssida för en lokal bokhandel, byggt i en grupp om fem personer.
-- **Min roll & lärdom:**
-  - Utöver att bygga `header`, `main` och `footer` tog jag på mig uppgiften att **koppla ihop allas kod på slutet** och städa upp alla smådetaljer. Det lärde mig hur viktigt det är att tidigt komma överens om namngivning av CSS-klasser och variabler så att inte allas stilar krockar vid merge.
+En fullstackapp för att organisera uppgifter efter prioritet, förfallodatum och status. Efter att ha arbetat med relationsdatabaser ville jag prova dokumentmodellering med MongoDB. I Mongoose definierade jag ett schema där uppgiften har en ägarreferens och ett begränsat antal prioritetsnivåer. Jag övade också på hur ett Express-mellanlager verifierar JWT vid anrop till skyddade delar av API:et.
+
+[Se källkoden för Taskflow](https://github.com/amir0321/TASKFLOW)
+
+## Solaris
+
+En interaktiv visualisering av solsystemet i HTML, CSS och JavaScript. Jag separerade API-anropen från koden som skapar planeterna i DOM:en och hanterar klick. Att först hämta en API-nyckel och sedan använda den för att läsa planetdata gav mig praktisk erfarenhet av asynkrona anrop som beror på varandra.
+
+[Se källkoden för Solaris](https://github.com/amir0321/Solsystem)
+
+## Pärmar & Poesi
+
+En responsiv landningssida för en lokal bokhandel, byggd i en grupp om fem personer. Jag tog fram sidans huvudstruktur och ansvarade för att integrera gruppens sektioner. Det arbetet visade hur gemensamma klassnamn, Sass-variabler och mixins underlättar när flera personer bygger delar av samma gränssnitt.
+
+[Se källkoden för Pärmar & Poesi](https://github.com/amir0321/Parmar-Poesi)
+
+## Modern UX
+
+En landningssida för en SaaS-produkt, byggd med React, Vite och Tailwind CSS. Jag delade upp innehållet i komponenter för bland annat funktioner, priser och kundomdömen. Det gav mig en konkret övning i visuell hierarki och responsiva layouter, från staplade sektioner på mobil till flera kolumner på större skärmar.
+
+[Se källkoden för Modern UX](https://github.com/amir0321/modern-ux)
+
+## Portfolio
+
+Min portfoliowebbplats i React och Vite samlar en kort presentation, projekt och kontaktvägar. Jag gav varje sektion en egen komponent, vilket gör det enklare att uppdatera projektdelen i takt med utbildningen.
+
+[Se källkoden för Portfolio](https://github.com/amir0321/Portfolio)

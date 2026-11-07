@@ -1,23 +1,31 @@
-# AutoEskil – Tekniska val & lärdomar
+# AutoEskil
 
-**Repo:** [github.com/amir0321/AutoEskil](https://github.com/amir0321/AutoEskil)  
-**Stack:** React, Vite, React Router, Node.js, Express, SQLite → PostgreSQL (`pg`)
+AutoEskil är en webbapplikation för bilförmedling i Eskilstuna. En köpare kan ange önskemål som budget, miltal och drivmedel och få förslag från anslutna bilhandlares lager. Administratören kan följa upp förfrågningarna och se vilka bilar som matchade.
 
----
+**Teknik** · React, Vite, React Router, Node.js, Express och PostgreSQL
 
-## Bakgrund
+[Visa källkoden för AutoEskil](https://github.com/amir0321/AutoEskil)
 
-AutoEskil är en webbapplikation för bilförmedling i Eskilstuna. Grundidén är att bilköpare inte bara ska behöva leta själva i ett lager, utan kan skicka in en intresseanmälan (*Lead*) med sina krav (märke, modell, drivmedel, årsmodell, miltal och maxbudget). Systemet matchar då automatiskt kundens önskemål mot bilar som finns inne hos anslutna bilhandlare (*Dealers*).
+## Min roll
 
-## Vad jag själv bestämde och varför
+Jag byggde flödet från kundens intresseanmälan till matchningen och uppföljningen i adminpanelen. Det innebar att översätta köparens önskemål till sökvillkor, modellera relationerna mellan handlare, bilar och förfrågningar samt anpassa databasen för drift.
 
-### 1. Migreringen från SQLite till PostgreSQL inför produktion
-Jag byggde först hela backend med SQLite (`sqlite3`) eftersom det är smidigt under utveckling – databasen är bara en lokal fil (`bilformedling_etuna.db`).
-- **Problemet jag stötte på:** När jag skulle driftsätta projektet på Render insåg jag att Render använder ett temporärt filsystem i sin gratisversion. Varje gång servern startade om raderades SQLite-filen och alla bilar och leads försvann.
-- **Hur jag löste det:** Jag bytte ut SQLite mot en riktig PostgreSQL-databas (`pg.Pool`). För att slippa skriva om all logik i varje fil på en gång byggde jag en kompatibilitets-wrapper i `db.js` för `db.all()`, `db.get()` och `db.run()` som automatiskt översatte mina `?`-platshållare till PostgreSQL:s `$1, $2`-format.
+## Tekniska val
 
-### 2. Direkt matchning i `POST /api/leads` + `ON DELETE CASCADE`
-- **Varför:** När en kund skickar in sin förfrågan ville jag både ge kunden ett direkt svar om det redan finns en matchande bil i lagret, och samtidigt spara matchningen för administratören i adminpanelen. Genom att använda `ON DELETE CASCADE` i databasschemat rensas gamla matchningsrader automatiskt bort när en bil eller bilhandlare raderas.
+### Från SQLite till PostgreSQL inför driftsättning
 
-### 3. Cookie-baserad adminsession (`HttpOnly`)
-- **Varför:** Eftersom vanliga besökare inte behöver logga in för att skicka in en intresseanmälan är det bara administratören som har ett konto. Jag valde då att sätta admin-token i en `HttpOnly`-cookie vid `POST /api/login` och skydda servern med `helmet` och `express-rate-limit`.
+SQLite gav mig en enkel start under lokal utveckling. När jag driftsatte applikationen på Render behövde datan överleva omstarter även när serverns filsystem återställdes. Jag flyttade därför datalagret till PostgreSQL. Ett kompatibilitetslager i `db.js` behöll gränssnittet för `db.all()`, `db.get()` och `db.run()` och översatte frågornas platshållare från `?` till `$1`, `$2` och så vidare. Det gjorde att befintliga anrop kunde behållas under övergången.
+
+### Direkt återkoppling och sparade matchningar
+
+När en förfrågan kommer in via `POST /api/leads` sparar servern den och söker efter bilar som passar önskemålen. Köparen får eventuella träffar direkt och administratören kan se samma matchningar vid uppföljningen. Främmande nycklar med `ON DELETE CASCADE` rensar kopplingarna när en bil eller en förfrågan tas bort.
+
+### Separat inloggning för administration
+
+Besökare kan skicka in en förfrågan utan konto. Vid admininloggning sparar servern sessionstoken i en `HttpOnly`-cookie, vilket hindrar skript i webbläsaren från att läsa token direkt. Inloggningsrutten begränsar antalet försök med `express-rate-limit`.
+
+## Vad jag lärde mig
+
+SQLite passade bra när jag ville få igång projektet lokalt. Flytten till PostgreSQL lärde mig att tänka på driften tidigare, särskilt på var datan finns efter en omstart. I matchningen fick jag också väga två behov mot varandra. Köparen vill ha ett snabbt svar, medan administratören behöver kunna följa upp förfrågan senare.
+
+[Tillbaka till profilöversikten](../README.md)

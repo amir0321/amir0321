@@ -1,30 +1,35 @@
-# Marginalia – Tekniska val & lärdomar
+# Marginalia
 
-**Repo:** [github.com/amir0321/Marginalia](https://github.com/amir0321/Marginalia)  
-**Stack:** Angular 20 (Signals, Standalone Components), .NET 9 Web API, EF Core 9, PostgreSQL 17, Docker, GitHub Actions CI, Playwright
+Marginalia är ett personligt bibliotek för lästa böcker och upp till fem favoritcitat. Jag byggde den responsiva webbapplikationen som arbetsprov, med ett Angular-gränssnitt och ett ASP.NET Core-API.
 
----
+**Teknik** · Angular 20, .NET 9, EF Core, PostgreSQL, Docker och GitHub Actions
 
-## Bakgrund
+[Visa källkoden för Marginalia](https://github.com/amir0321/Marginalia)
 
-Marginalia byggdes som ett arbetsprov: en responsiv CRUD-applikation med JWT-autentisering där en användare kan hantera sina lästa böcker och upp till 5 favoritcitat. Uppgiften lämnade medvetet flera design- och arkitekturval öppna för egen tolkning.
+## Min roll
 
-## Vad jag själv bestämde och varför
+Jag tog fram gränssnittet, modellerade böcker och citat och byggde API:et och driftsättningen. Jag lade särskild vikt vid att varje användare bara kommer åt sina egna böcker och att väntan på API:et blir begriplig i gränssnittet.
 
-### 1. Reverse Proxy (Same-Origin) istället för CORS
-När frontend ligger på Netlify och .NET-API:et ligger på Render är standardlösningen att slå på CORS i backend. Jag valde istället att konfigurera Netlifys `_redirects` (och Angulars `proxy.conf.json` lokalt) som en omvänd proxy för `/api/*`.
-- **Varför:** Webbläsaren upplever att både Angular-appen och API:et ligger på exakt samma domän. Det tar bort alla `OPTIONS`-preflight-anrop, gör anropen snabbare och minskar attackytan.
+## Tekniska val
 
-### 2. Lösa Render Free Tier-kallstarter i användargränssnittet (`ApiWakeService`)
-Gratisinstanser på Render somnar efter 15 minuters inaktivitet och tar 50–60 sekunder att starta upp vid första anropet.
-- **Varför:** Jag insåg att när en rekryterare öppnar live-länken för att testa inloggningen kommer servern sannolikt att sova. Om ingenting händer på en minut tror man att appen är trasig. Därför byggde jag `ApiWakeService` som direkt vid sidladdning skickar ett tyst anrop till `GET /api/health` och visar en lugn toast-notis om svaret dröjer mer än 2 sekunder.
+### Åtkomstkontroll i databasfrågan
 
-### 3. Angular Signals istället för NgRx
-- **Varför:** För en applikation med några få vyer (böcker, citat, autentisering, tema) ger ett stort state-bibliotek som NgRx bara onödig boilerplate. Genom att använda Angular 20:s inbyggda `signal()`, `computed()` och `OnPush` change detection blev koden kort, lättläst och enkel att enhetstesta.
+Bok-API:et kräver autentisering. Vid läsning, ändring och borttagning av en enskild bok filtrerar API:et på både bokens ID och användarens ID från den verifierade JWT-token. Ett bok-ID som tillhör någon annan ger därmed samma `404 Not Found` som ett ID utan träff. Åtkomstkontrollen ligger i ägarfiltret. Det gemensamma svaret begränsar vilken information som lämnas om andra användares böcker.
 
-### 4. Returnera `404 Not Found` istället för `403 Forbidden` på andras resurser
-- **Varför:** Om användare A försöker hämta eller ta bort användare B:s bok via `/api/books/42`, och API:et svarar `403 Forbidden`, avslöjar servern att bok #42 existerar (IDOR-läcka). Genom att alltid filtrera frågan på `UserId` från JWT-token direkt i databasfrågan returneras konsekvent `404 Not Found`.
+### Samma ursprung för gränssnitt och API
+
+Jag låter frontend göra anrop till den relativa sökvägen `/api`. Netlify vidarebefordrar anropen till API:et på Render, medan Angulars utvecklingsproxy hanterar samma sökväg lokalt. Det ger frontend en gemensam anropsväg i båda miljöerna och håller webbläsarens anrop till samma ursprung som gränssnittet.
+
+### Tydlig återkoppling vid kallstart
+
+API:et kan behöva starta upp efter en tids inaktivitet. Därför byggde jag `ApiWakeService`, som anropar `GET /api/health` i bakgrunden när appen laddas. Om det dröjer mer än två sekunder att få kontakt får användaren ett meddelande om att servern startar.
+
+### Lokal tillståndshantering i Angular
+
+Jag använde Angular Signals för bland annat tema, inloggningsstatus och filtrering. `signal()` håller reda på aktuellt tillstånd och `computed()` härleder exempelvis vilka böcker som ska visas för det valda filtret.
 
 ## Vad jag lärde mig
-- Hur man sätter upp en komplett CI/CD-kedja i GitHub Actions som testar både .NET (`dotnet test`), Angular (`Karma/ChromeHeadless`) och Docker-bygget innan deploy.
-- Hur man undviker layout-flimmer vid sidomladdning i Angular genom att kontrollera initial rutt innan shell-komponenten renderar menyn.
+
+Jag fick praktisk erfarenhet av att kombinera autentisering med ägarbaserad behörighet och av att anpassa ett gränssnitt till driftsmiljön. Jag satte också upp ett arbetsflöde i GitHub Actions som bygger och testar .NET-API:et och Angular-appen samt kontrollerar att API:ets Docker-avbildning går att bygga.
+
+[Tillbaka till profilöversikten](../README.md)
